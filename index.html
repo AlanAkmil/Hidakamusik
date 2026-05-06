@@ -522,7 +522,6 @@ let lastSearchResults=[],currentSearchFilter='all',lastSearchQ='';
 let currentLibTab='all';
 let isBuffering=false;
 let currentSubPanel=null; // 'lyrics','upnext','artist'
-let lyricsCacheMap = {}; // Cache lirik untuk pre-fetch
 
 // ===== STORAGE HELPERS =====
 function getLiked(){try{return JSON.parse(localStorage.getItem('nada_liked')||'[]')}catch{return[]}}
@@ -640,57 +639,21 @@ function switchSubPanel(panel,btn){
   document.getElementById('fpMain').scrollTop=0;
 }
 
-// ===== PREFETCH LYRICS (biar cepat pas dibuka) =====
-async function prefetchLyrics(t) {
-  if(lyricsCacheMap[t.id]) return; // udah ada cache
-  
-  let rawTitle = t.title
-    .replace(/\s*[\(\[【][^)\]】]*[\)\]】]/g,'')
-    .replace(/ft\..*$/i,'').replace(/feat\..*$/i,'')
-    .replace(/official\s*(music\s*)?(video|audio|lyric|mv)?/gi,'')
-    .replace(/\|\s*.*/,'')
-    .replace(/-\s*[^-]*official.*/gi,'')
-    .replace(/lyrics?/gi,'').replace(/hd/gi,'')
-    .replace(/\s{2,}/g,' ').trim();
-
-  let artist = t.channel
-    .replace(/VEVO/gi,'').replace(/-\s*Topic$/i,'')
-    .replace(/Official/gi,'').replace(/Music/gi,'')
-    .replace(/\s{2,}/g,' ').trim();
-
-  try {
-    let res = await fetch(
-      `https://lrclib.net/api/search?track_name=${encodeURIComponent(rawTitle)}&artist_name=${encodeURIComponent(artist)}`,
-      {headers:{'Lrclib-Client':'NadaMusic/1.0'}}
-    );
-    const arr = await res.json();
-    if(arr && arr.length) lyricsCacheMap[t.id] = arr;
-  } catch {}
-}
-
 // ===== LYRICS via lrclib.net =====
 async function loadLyrics(){
   const t=allTracks[curIdx];
   if(!t)return;
   if(lyricsTrackId===t.id)return;
   lyricsTrackId=t.id;
-  
-  // Cek cache dulu
-  if(lyricsCacheMap[t.id]) {
-    const arr = lyricsCacheMap[t.id];
-    processLyricsData(arr, t);
-    return;
-  }
-  
   document.getElementById('lyricsContent').innerHTML='<div class="lyrics-loading"><div class="spin"></div><span>Memuat lirik...</span></div>';
 
   // Aggressive title cleaning
   let rawTitle=t.title
-    .replace(/\s*[\(\[【][^)\]】]*[\)\]】]/g,'')
+    .replace(/\s*[\(\[【][^)\]】]*[\)\]】]/g,'')  // remove anything in brackets
     .replace(/ft\..*$/i,'').replace(/feat\..*$/i,'')
     .replace(/official\s*(music\s*)?(video|audio|lyric|mv)?/gi,'')
-    .replace(/\|\s*.*/,'')
-    .replace(/-\s*[^-]*official.*/gi,'')
+    .replace(/\|\s*.*/,'')                          // remove "| artist" at end
+    .replace(/-\s*[^-]*official.*/gi,'')            // remove "- Artist Official..."
     .replace(/lyrics?/gi,'').replace(/hd/gi,'')
     .replace(/\s{2,}/g,' ').trim();
 
@@ -718,38 +681,33 @@ async function loadLyrics(){
       res=await fetch(url,{headers:{'Lrclib-Client':'NadaMusic/1.0'}});
       arr=await res.json();
     }
-    
-    // Simpan ke cache
-    if(arr && arr.length) lyricsCacheMap[t.id] = arr;
-    processLyricsData(arr, t);
-  } catch(e){
-    console.warn('Lyrics error:',e);
-    showNoLyrics();
-  }
-}
 
-function processLyricsData(arr, t) {
-  if(arr && arr.length){
-    const withSynced=arr.find(x=>x.syncedLyrics&&x.syncedLyrics.length>50);
-    const withPlain=arr.find(x=>x.plainLyrics&&x.plainLyrics.length>50);
-    const match=withSynced||withPlain||arr[0];
+    if(arr&&arr.length){
+      // Pick best: prefer synced, then plain
+      const withSynced=arr.find(x=>x.syncedLyrics&&x.syncedLyrics.length>50);
+      const withPlain=arr.find(x=>x.plainLyrics&&x.plainLyrics.length>50);
+      const match=withSynced||withPlain||arr[0];
 
-    if(match.syncedLyrics&&match.syncedLyrics.length>50){
-      const lines=match.syncedLyrics.split('\n').map(l=>{
-        const m=l.match(/\[(\d+):(\d+\.\d+)\](.*)/);
-        if(!m)return null;
-        return{time:parseInt(m[1])*60+parseFloat(m[2]),text:m[3].trim()||'♪'};
-      }).filter(Boolean);
-      syncedLines=lines;
-      renderLyricsLines(lines.map(l=>l.text));
-    } else if(match.plainLyrics&&match.plainLyrics.length>50){
-      syncedLines=null;
-      const lines=match.plainLyrics.split('\n').filter(l=>l.trim());
-      renderLyricsLines(lines);
+      if(match.syncedLyrics&&match.syncedLyrics.length>50){
+        const lines=match.syncedLyrics.split('\n').map(l=>{
+          const m=l.match(/\[(\d+):(\d+\.\d+)\](.*)/);
+          if(!m)return null;
+          return{time:parseInt(m[1])*60+parseFloat(m[2]),text:m[3].trim()||'♪'};
+        }).filter(Boolean);
+        syncedLines=lines;
+        renderLyricsLines(lines.map(l=>l.text));
+      } else if(match.plainLyrics&&match.plainLyrics.length>50){
+        syncedLines=null;
+        const lines=match.plainLyrics.split('\n').filter(l=>l.trim());
+        renderLyricsLines(lines);
+      } else {
+        showNoLyrics();
+      }
     } else {
       showNoLyrics();
     }
-  } else {
+  } catch(e){
+    console.warn('Lyrics error:',e);
     showNoLyrics();
   }
 }
@@ -1032,7 +990,7 @@ function downloadTrack(id,title){
   window.open(`https://cobalt.tools/#${encodeURIComponent('https://www.youtube.com/watch?v='+id)}`,'_blank');
 }
 
-// ===== SEARCH FILTER ===== (DIPERBAIKI - tidak terlalu ketat)
+// ===== SEARCH FILTER =====
 let lastRawResults=[];
 document.getElementById('searchChips').addEventListener('click',e=>{
   const c=e.target.closest('.chip');if(!c)return;
@@ -1040,45 +998,12 @@ document.getElementById('searchChips').addEventListener('click',e=>{
   currentSearchFilter=c.dataset.filter;if(lastRawResults.length)applySearchFilter();
 });
 function applySearchFilter(){
-  let filtered = lastRawResults;
-  const f = currentSearchFilter;
-
-  if(f === 'lagu') {
-    // Filter lebih longgar: hanya buang yang jelas-jelas bukan lagu (podcast, kompilasi full album)
-    filtered = lastRawResults.filter(t => {
-      const tl = t.title.toLowerCase();
-      return !tl.includes('podcast') && 
-             !tl.includes('full album') && 
-             !tl.includes('compilation');
-    });
-  }
-  else if(f === 'video') {
-    filtered = lastRawResults.filter(t => {
-      const tl = t.title.toLowerCase();
-      return tl.includes('video') || tl.includes('mv') || tl.includes('live');
-    });
-  }
-  else if(f === 'album') {
-    filtered = lastRawResults.filter(t => {
-      const tl = t.title.toLowerCase();
-      return tl.includes('album') || tl.includes('full') || tl.includes('ep');
-    });
-  }
-  else if(f === 'artis') {
-    const seen = new Set();
-    filtered = lastRawResults.filter(t => {
-      if(seen.has(t.channel)) return false;
-      seen.add(t.channel);
-      return true;
-    });
-  }
-
-  // Kalau hasil filter kosong, fallback ke semua hasil
-  if(!filtered.length) filtered = lastRawResults;
-
-  allTracks = filtered;
-  curIdx = -1;
-  renderSearch(filtered);
+  let filtered=lastRawResults;const f=currentSearchFilter;
+  if(f==='lagu')filtered=lastRawResults.filter(t=>!t.title.toLowerCase().includes('official video')&&!t.title.toLowerCase().includes('music video'));
+  else if(f==='video')filtered=lastRawResults.filter(t=>t.title.toLowerCase().includes('video')||t.title.toLowerCase().includes('mv'));
+  else if(f==='album')filtered=lastRawResults.filter(t=>t.title.toLowerCase().includes('album')||t.title.toLowerCase().includes('full'));
+  else if(f==='artis'){const seen=new Set();filtered=lastRawResults.filter(t=>{if(seen.has(t.channel))return false;seen.add(t.channel);return true;});}
+  allTracks=filtered;curIdx=-1;renderSearch(filtered);
 }
 
 // ===== RENDER =====
@@ -1303,7 +1228,7 @@ function setupInfiniteScroll(){
   obs.observe(document.getElementById('scrollSentinel'));
 }
 
-// ===== PLAY ===== (DITAMBAH PREFETCH LYRICS)
+// ===== PLAY =====
 function playTrack(idx,tracks){
   if(idx<0||idx>=tracks.length)return;
   if(tracks!==allTracks)allTracks=tracks;
@@ -1333,10 +1258,6 @@ function playTrack(idx,tracks){
   setPlaying(false);
   setBuffering(true); // show loading immediately
   updateHeartUI();
-  
-  // PRE-FETCH LYRICS DI BACKGROUND (biar cepat pas dibuka)
-  setTimeout(() => prefetchLyrics(t), 500);
-  
   if(ytReady&&yt&&typeof yt.loadVideoById==='function'){
     yt.loadVideoById(t.id);
     try{yt.setVolume(parseInt(document.getElementById('fpVol').value));}catch{}
@@ -1405,15 +1326,14 @@ document.getElementById('libChips').addEventListener('click',e=>{
   c.classList.add('active');currentLibTab=c.dataset.lib;renderLibrary();
 });
 
-// Search (DIPERBAIKI - tidak menambah kata filter ke query)
+// Search
 document.getElementById('searchInput').addEventListener('input',e=>{
   clearTimeout(searchTimer);
   const q=e.target.value.trim();
   if(!q){document.getElementById('searchResults').innerHTML=`<div class="search-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><p>Cari lagu, album, atau artis</p></div>`;lastRawResults=[];return;}
   document.getElementById('searchResults').innerHTML='<div class="loading"><div class="spin"></div><span>Mencari...</span></div>';
   searchTimer=setTimeout(async()=>{
-    // HAPUS penambahan kata filter ke query - query tetap murni dari user
-    const results=await ytSearch(q,20);
+    const results=await ytSearch(q+(currentSearchFilter!=='all'&&currentSearchFilter!=='lagu'?' '+currentSearchFilter:''),20);
     lastRawResults=results;allTracks=results;curIdx=-1;
     applySearchFilter();
   },600);
