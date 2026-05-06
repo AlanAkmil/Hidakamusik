@@ -404,4 +404,678 @@ body {
       </div>
     </div>
 
-    <!-
+    <!-- Quick Picks -->
+    <div class="sec" id="quickPicksSec">
+      <div class="qp-head">
+        <div class="sec-title">Pilihan cepat</div>
+        <button class="qp-btn" onclick="playAll()">Putar semua</button>
+      </div>
+      <div class="qp-list" id="qpList">
+        <div class="loading"><div class="spin"></div></div>
+      </div>
+    </div>
+
+    <!-- Tetap Mendengarkan (artists) -->
+    <div class="sec" id="artistSec">
+      <div class="sec-head">
+        <div class="sec-title">Tetap mendengarkan</div>
+        <div class="sec-more">Lihat semua</div>
+      </div>
+      <div class="hscroll-wrap">
+        <div class="hscroll" id="artistList">
+          <div class="loading"><div class="spin"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trending Now -->
+    <div class="sec" id="trendSec">
+      <div class="sec-head">
+        <div class="sec-title">Trending Now</div>
+        <div class="sec-more">Lihat semua</div>
+      </div>
+      <div class="hscroll-wrap">
+        <div class="hscroll" id="trendList">
+          <div class="loading"><div class="spin"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- New Releases -->
+    <div class="sec" id="newSec">
+      <div class="sec-head">
+        <div class="sec-title">New Releases</div>
+        <div class="sec-more">Lihat semua</div>
+      </div>
+      <div class="hscroll-wrap">
+        <div class="hscroll" id="newList">
+          <div class="loading"><div class="spin"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Similar banner -->
+    <div id="similarBanner" style="margin-bottom:24px;display:none">
+      <div class="similar-banner" onclick="loadSimilar()">
+        <img class="similar-thumb" id="similarThumb" src="" alt="">
+        <div class="similar-text">
+          <div class="similar-label">Serupa dengan</div>
+          <div class="similar-name" id="similarName">—</div>
+        </div>
+        <svg class="similar-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+      </div>
+    </div>
+
+    <!-- Dynamic extra sections (Serupa dengan + themed) -->
+    <div id="extraSections"></div>
+
+    <!-- Infinite scroll sentinel -->
+    <div id="scrollSentinel" style="height:20px;margin-bottom:8px"></div>
+  </div>
+</div>
+
+<!-- ========= SEARCH PAGE ========= -->
+<div class="page" id="pageSearch">
+  <div class="search-topbar">
+    <div class="search-input-wrap">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      <input id="searchInput" type="text" placeholder="Mencari" autocomplete="off">
+    </div>
+  </div>
+  <div class="search-chips" id="searchChips">
+    <button class="chip active" data-q="" data-label="Semua">Semua</button>
+    <button class="chip" data-q="lagu" data-label="Lagu">Lagu</button>
+    <button class="chip" data-q="video" data-label="Video">Video</button>
+    <button class="chip" data-q="album" data-label="Album">Album</button>
+    <button class="chip" data-q="artis" data-label="Artis">Artis</button>
+  </div>
+  <div class="scroll-content">
+    <div id="searchResults">
+      <div class="search-empty">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <p>Cari lagu, album, atau artis</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========= LIBRARY PAGE ========= -->
+<div class="page" id="pageLibrary">
+  <div class="lib-topbar">
+    <div class="lib-title">Pustaka</div>
+    <div class="lib-chips chips">
+      <button class="chip active">Daftar putar</button>
+      <button class="chip">Lagu</button>
+      <button class="chip">Album</button>
+      <button class="chip">Artis</button>
+    </div>
+  </div>
+  <div class="sort-row">
+    <span class="sort-label">Tanggal ditambahkan ↓</span>
+    <button class="sort-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="scroll-content">
+    <div class="lib-list">
+      <div class="lib-item">
+        <div class="lib-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+        <div class="lib-info"><div class="lib-name">Disukai</div><div class="lib-sub">0 lagu</div></div>
+      </div>
+      <div class="lib-item">
+        <div class="lib-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+        <div class="lib-info"><div class="lib-name">Diunduh</div><div class="lib-sub">Tersedia offline</div></div>
+      </div>
+      <div class="lib-item">
+        <div class="lib-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+        <div class="lib-info"><div class="lib-name">Teratas Saya 50</div><div class="lib-sub">Playlist otomatis</div></div>
+      </div>
+      <div class="lib-item">
+        <div class="lib-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        <div class="lib-info"><div class="lib-name">Riwayat / Tersimpan di Cache</div><div class="lib-sub">Diputar terakhir</div></div>
+      </div>
+      <div class="lib-item">
+        <div class="lib-icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg></div>
+        <div class="lib-info"><div class="lib-name">Diunggah</div><div class="lib-sub">Musik lokal kamu</div></div>
+      </div>
+      <div class="lib-item" style="cursor:default">
+        <div class="lib-icon" style="background:#1a1a1a"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+        <div class="lib-info"><div class="lib-name">Buat playlist baru</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========= MINI PLAYER ========= -->
+<div class="mini-player" id="miniPlayer" onclick="openFullPlayer()">
+  <img class="mini-thumb" id="miniThumb" src="" alt="">
+  <div class="mini-info">
+    <div class="mini-title" id="miniTitle">—</div>
+    <div class="mini-artist" id="miniArtist">—</div>
+  </div>
+  <div class="mini-btns">
+    <button class="mini-btn" onclick="event.stopPropagation();prevTrack()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+    </button>
+    <button class="mini-playbtn" id="miniBtnPlay" onclick="event.stopPropagation();togglePlay()">
+      <svg id="miniIcPlay" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      <svg id="miniIcPause" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+    </button>
+    <button class="mini-btn" onclick="event.stopPropagation();nextTrack()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+    </button>
+  </div>
+  <div class="mini-progress" id="miniProg" style="width:0%"></div>
+</div>
+
+<!-- ========= BOTTOM NAV ========= -->
+<nav class="bottom-nav">
+  <button class="nav-item active" id="navHome" onclick="showPage('home')">
+    <div class="nav-item-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+    </div>
+    <span class="nav-label">Beranda</span>
+  </button>
+  <button class="nav-item" id="navSearch" onclick="showPage('search')">
+    <div class="nav-item-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    </div>
+    <span class="nav-label">Mencari</span>
+  </button>
+  <button class="nav-item" id="navLibrary" onclick="showPage('library')">
+    <div class="nav-item-icon">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+    </div>
+    <span class="nav-label">Pustaka</span>
+  </button>
+
+</nav>
+
+<!-- ========= FULL PLAYER ========= -->
+<div class="full-player" id="fullPlayer">
+  <div class="fp-handle" onclick="closeFullPlayer()"></div>
+  <div class="fp-topbar">
+    <div class="fp-from">Memutar dari Trending</div>
+    <button class="fp-close" onclick="closeFullPlayer()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m18 15-6-6-6 6"/></svg>
+    </button>
+  </div>
+  <div class="fp-album">
+    <img class="fp-album-img" id="fpImg" src="" alt="">
+  </div>
+  <div class="fp-info">
+    <div>
+      <div class="fp-title" id="fpTitle">—</div>
+      <div class="fp-artist" id="fpArtist">—</div>
+    </div>
+    <button class="fp-heart">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    </button>
+  </div>
+  <div class="fp-prog-wrap">
+    <div class="fp-pbar" id="fpPbar">
+      <div class="fp-pfill" id="fpPfill" style="width:0%"></div>
+    </div>
+    <div class="fp-times">
+      <span id="fpNow">0:00</span>
+      <span id="fpEnd">0:00</span>
+    </div>
+  </div>
+  <div class="fp-controls">
+    <button class="fp-cbtn" title="Acak">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/></svg>
+    </button>
+    <button class="fp-cbtn" onclick="prevTrack()">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+    </button>
+    <button class="fp-playbtn" id="fpBtnPlay" onclick="togglePlay()">
+      <svg id="fpIcPlay" width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      <svg id="fpIcPause" width="28" height="28" viewBox="0 0 24 24" fill="currentColor" style="display:none"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+    </button>
+    <button class="fp-cbtn" onclick="nextTrack()">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+    </button>
+    <button class="fp-cbtn" title="Ulangi">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+    </button>
+  </div>
+  <div class="fp-extras">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="color:var(--muted);flex-shrink:0"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02z"/></svg>
+    <input type="range" class="fp-vol" id="fpVol" min="0" max="100" value="80">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="color:var(--muted);flex-shrink:0"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM16.5 3C14.77 3 13 3.78 11.75 5.02L13.17 6.44C14.04 5.57 15.22 5 16.5 5c2.76 0 5 2.24 5 5s-2.24 5-5 5c-1.28 0-2.46-.57-3.33-1.44L11.75 15.98C13 17.22 14.77 18 16.5 18c3.87 0 7-3.13 7-7s-3.13-7-7-7z"/></svg>
+  </div>
+</div>
+
+<script>
+// ===== YouTube IFrame API =====
+let yt = null, ytReady = false, pendingId = null;
+let allTracks = [], curIdx = -1, progTimer, searchTimer;
+let currentPage = 'home';
+
+window.onYouTubeIframeAPIReady = function() {
+  ytReady = true;
+  yt = new YT.Player('yt', {
+    height: '1', width: '1',
+    playerVars: { autoplay: 1, controls: 0, playsinline: 1 },
+    events: {
+      onReady: (ev) => {
+        ev.target.setVolume(document.getElementById('fpVol').value);
+        if (pendingId) { yt.loadVideoById(pendingId); pendingId = null; }
+      },
+      onStateChange: (e) => {
+        if (e.data === YT.PlayerState.PLAYING) { setPlaying(true); startProg(); }
+        else if (e.data === YT.PlayerState.PAUSED || e.data === YT.PlayerState.BUFFERING) setPlaying(false);
+        else if (e.data === YT.PlayerState.ENDED) nextTrack();
+      },
+      onError: () => { setPlaying(false); }
+    }
+  });
+};
+
+const ytTag = document.createElement('script');
+ytTag.src = 'https://www.youtube.com/iframe_api';
+document.head.appendChild(ytTag);
+
+async function ytSearch(q, max = 12) {
+  try {
+    const res = await fetch(`/api/search?q=${encodeURIComponent(q)}&max=${max}`);
+    if (!res.ok) return [];
+    return await res.json();
+  } catch(e) { return []; }
+}
+
+// ===== PAGE NAV =====
+function showPage(p) {
+  document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(x => x.classList.remove('active'));
+  currentPage = p;
+  if (p === 'home') { document.getElementById('pageHome').classList.add('active'); document.getElementById('navHome').classList.add('active'); }
+  else if (p === 'search') { document.getElementById('pageSearch').classList.add('active'); document.getElementById('navSearch').classList.add('active'); setTimeout(() => document.getElementById('searchInput').focus(), 100); }
+  else if (p === 'library') { document.getElementById('pageLibrary').classList.add('active'); document.getElementById('navLibrary').classList.add('active'); }
+
+}
+
+// ===== RENDER SPEED DIAL (3x3 grid) =====
+function renderSpeedGrid(tracks) {
+  const el = document.getElementById('speedGrid');
+  el.innerHTML = tracks.slice(0,9).map((t,i) => `
+    <div class="speed-card anim" style="animation-delay:${i*0.04}s" onclick="playTrack(${i},allTracks)">
+      <img src="${t.thumb}" alt="" style="width:100%;height:100%;object-fit:cover;display:block">
+      <div class="speed-card-label">${t.title}</div>
+    </div>
+  `).join('');
+}
+
+// ===== RENDER QUICK PICKS (list) =====
+function renderQP(tracks) {
+  const el = document.getElementById('qpList');
+  el.innerHTML = tracks.slice(0,8).map((t,i) => `
+    <div class="qp-item anim ${i===curIdx?'playing':''}" style="animation-delay:${i*0.04}s" onclick="playTrack(${i},allTracks)">
+      <img class="qp-thumb" src="${t.thumb}" alt="" onerror="this.style.background='#222'">
+      <div class="qp-info">
+        <div class="qp-title">${t.title}</div>
+        <div class="qp-artist">${t.channel}</div>
+      </div>
+      <button class="qp-more" onclick="event.stopPropagation()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+      </button>
+    </div>
+  `).join('');
+}
+
+// ===== RENDER HORIZONTAL CARDS =====
+function renderHCards(containerId, tracks, offset=0) {
+  const el = document.getElementById(containerId);
+  el.innerHTML = tracks.slice(offset, offset+8).map((t,i) => `
+    <div class="h-card anim ${(i+offset)===curIdx?'playing':''}" style="animation-delay:${i*0.04}s" onclick="playTrack(${i+offset},allTracks)">
+      <img class="h-card-img" src="${t.thumb}" alt="" onerror="this.style.background='#222'">
+      <div class="h-card-title">${t.title}</div>
+      <div class="h-card-sub">${t.channel}</div>
+    </div>
+  `).join('');
+}
+
+// ===== RENDER ARTISTS =====
+function renderArtists(tracks) {
+  const el = document.getElementById('artistList');
+  // Extract unique channels as "artists"
+  const seen = new Set();
+  const artists = [];
+  for (const t of tracks) {
+    if (!seen.has(t.channel)) { seen.add(t.channel); artists.push(t); }
+    if (artists.length >= 6) break;
+  }
+  el.innerHTML = artists.map((t,i) => `
+    <div class="artist-card anim" style="animation-delay:${i*0.04}s">
+      <img class="artist-img" src="${t.thumb}" alt="">
+      <div class="artist-name">${t.channel}</div>
+      <div class="artist-role">Artis</div>
+    </div>
+  `).join('');
+}
+
+// ===== RENDER SEARCH RESULTS =====
+function renderSearch(tracks) {
+  const el = document.getElementById('searchResults');
+  if (!tracks.length) {
+    el.innerHTML = `<div class="search-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><p>Tidak ada hasil ditemukan 😔</p></div>`;
+    return;
+  }
+  el.innerHTML = `<div class="qp-list">${tracks.map((t,i) => `
+    <div class="qp-item anim" style="animation-delay:${i*0.04}s" onclick="playTrack(${i},allTracks)">
+      <img class="qp-thumb" src="${t.thumb}" alt="" onerror="this.style.background='#222'">
+      <div class="qp-info">
+        <div class="qp-title">${t.title}</div>
+        <div class="qp-artist">${t.channel}</div>
+      </div>
+      <button class="qp-more" onclick="event.stopPropagation()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+      </button>
+    </div>
+  `).join('')}</div>`;
+}
+
+// ===== EXTRA SECTION QUERIES per chip =====
+const EXTRA_SECTIONS = {
+  'top hits 2024':           [['Fun throwbacks','nostalgia indonesia throwbacks 2000s'],['Feel-good rock','rock indonesia feel good'],['Acoustic Chill','acoustic chill indonesia']],
+  'lofi chill relax music':  [['Lo-fi favorites','lofi hip hop beats'],['Sleep sounds','calm sleep music'],['Rainy day','rainy day chill music']],
+  'focus study music instrumental': [['Deep work','deep focus instrumental'],['Piano focus','piano study music'],['Ambient work','ambient concentration music']],
+  'commute travel music playlist':  [['Road trip','road trip hits'],['City vibes','city pop playlist'],['On the go','upbeat travel music']],
+  'gaming music epic':       [['Epic battles','epic battle music'],['Synthwave','synthwave retro gaming'],['Boss fight','intense boss fight music']],
+  'energize pump up music':  [['Pre-workout','pre workout hype music'],['EDM hits','edm hits 2024'],['Adrenaline','adrenaline sports music']],
+  'party hits dance music':  [['Club bangers','club bangers 2024'],['Disco vibes','disco funk classics'],['TikTok party','tiktok viral party songs']],
+  'feel good happy songs':   [['Summer hits','summer hits 2024'],['Indie happy','indie feel good songs'],['Fun pop','fun pop songs']],
+  'romantic love songs':     [['Love ballads','love ballads indonesia'],['Serupa dengan Tems','Tems songs'],['Slow jams','slow jams romantic']],
+  'workout gym motivation music': [['Gym hits','gym workout music 2024'],['Running','running motivation music'],['HIIT energy','hiit workout music']],
+  'sleep relax calm music':  [['Sleep meditation','sleep meditation music'],['Calm piano','calm piano sleep'],['Nature sounds','nature sleep sounds']],
+  'sad emotional songs':     [['Heartbreak','heartbreak songs indonesia'],['Melancholic','melancholic indie songs'],['Serupa dengan Hindia','Hindia songs']],
+  'happy upbeat songs':      [['Morning vibes','morning happy music'],['Dance happy','dance happy hits'],['Smile songs','upbeat cheerful songs']],
+  'nostalgia throwback hits 2000s': [['Fun throwbacks','indonesia throwbacks 2000s'],['90s hits','90s hits indonesia'],['Old school','old school music indonesia']],
+  'acoustic songs guitar':   [['Acoustic Chill','acoustic chill songs'],['Guitar covers','acoustic guitar covers'],['Serupa dengan Nadin Amizah','Nadin Amizah songs']],
+  'pop hits 2024':           [['Top pop','pop hits indonesia 2024'],['Indie pop','indie pop songs'],['Viral pop','viral pop songs 2024']],
+  'rock hits indonesia':     [['Feel-good rock','rock indonesia classics'],['Metal hits','metal rock indonesia'],['Punk rock','punk rock hits']],
+};
+
+// Tracks pool for each extra section (stored globally to enable play)
+let extraTrackPools = {}; // sectionId -> tracks[]
+let extraSectionCount = 0;
+let extraSectionsLoading = false;
+let currentChipQ = 'top hits 2024';
+
+// ===== LOAD HOME =====
+async function loadHome(q = 'top hits 2024') {
+  currentChipQ = q;
+  extraTrackPools = {};
+  extraSectionCount = 0;
+  document.getElementById('extraSections').innerHTML = '';
+
+  // Show loading
+  document.getElementById('speedGrid').innerHTML = '<div class="loading"><div class="spin"></div></div>';
+  document.getElementById('qpList').innerHTML = '<div class="loading"><div class="spin"></div></div>';
+  document.getElementById('trendList').innerHTML = '<div class="loading"><div class="spin"></div></div>';
+  document.getElementById('newList').innerHTML = '<div class="loading"><div class="spin"></div></div>';
+  document.getElementById('artistList').innerHTML = '<div class="loading"><div class="spin"></div></div>';
+
+  allTracks = await ytSearch(q, 24);
+  curIdx = -1;
+
+  if (!allTracks.length) return;
+
+  // Update featured
+  const t0 = allTracks[0];
+  document.getElementById('featuredTitle').textContent = t0.title;
+  document.getElementById('featuredSub').textContent = t0.channel;
+  document.getElementById('featuredBg').style.backgroundImage = `url(${t0.thumb})`;
+
+  // Similar banner
+  const sb = document.getElementById('similarBanner');
+  sb.style.display = 'block';
+  const simIdx = Math.min(3, allTracks.length-1);
+  document.getElementById('similarThumb').src = allTracks[simIdx].thumb;
+  document.getElementById('similarName').textContent = allTracks[simIdx].channel;
+
+  renderSpeedGrid(allTracks);
+  renderQP(allTracks);
+  renderArtists(allTracks);
+  renderHCards('trendList', allTracks, 0);
+  renderHCards('newList', allTracks, 8);
+
+  // Load first extra section eagerly
+  loadNextExtraSection();
+}
+
+// ===== LOAD EXTRA SECTIONS (called by scroll) =====
+async function loadNextExtraSection() {
+  if (extraSectionsLoading) return;
+  const sections = EXTRA_SECTIONS[currentChipQ] || EXTRA_SECTIONS['top hits 2024'];
+  if (extraSectionCount >= sections.length) return;
+
+  extraSectionsLoading = true;
+  const [label, query] = sections[extraSectionCount];
+  const sId = `extra_${extraSectionCount}`;
+  extraSectionCount++;
+
+  // Determine type: "Serupa dengan" or horizontal section
+  const isSimilar = label.startsWith('Serupa dengan');
+
+  // Create placeholder
+  const container = document.getElementById('extraSections');
+  const secEl = document.createElement('div');
+  secEl.className = 'sec';
+  secEl.id = sId;
+
+  if (isSimilar) {
+    const artistName = label.replace('Serupa dengan ', '');
+    secEl.innerHTML = `
+      <div class="similar-banner" style="margin:0 20px 16px;cursor:pointer" onclick="loadSimilarQuery('${query}','${artistName}')">
+        <div class="similar-thumb" style="background:#222;border-radius:8px;flex-shrink:0;width:48px;height:48px"></div>
+        <div class="similar-text">
+          <div class="similar-label">Serupa dengan</div>
+          <div class="similar-name">${artistName}</div>
+        </div>
+        <svg class="similar-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m9 18 6-6-6-6"/></svg>
+      </div>
+      <div class="hscroll-wrap"><div class="hscroll" id="${sId}_list"><div class="loading"><div class="spin"></div></div></div></div>`;
+  } else {
+    secEl.innerHTML = `
+      <div class="sec-head"><div class="sec-title">${label}</div><div class="sec-more">Lihat semua</div></div>
+      <div class="hscroll-wrap"><div class="hscroll" id="${sId}_list"><div class="loading"><div class="spin"></div></div></div></div>`;
+  }
+  container.appendChild(secEl);
+
+  // Fetch tracks
+  const tracks = await ytSearch(query, 8);
+  extraTrackPools[sId] = tracks;
+
+  if (isSimilar) {
+    // Update thumb
+    if (tracks.length) {
+      const thumb = secEl.querySelector('.similar-thumb');
+      thumb.style.backgroundImage = `url(${tracks[0].thumb})`;
+      thumb.style.backgroundSize = 'cover';
+      thumb.style.backgroundPosition = 'center';
+    }
+  }
+
+  // Render
+  const listEl = document.getElementById(`${sId}_list`);
+  if (!tracks.length) { listEl.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:12px">Tidak ada hasil</div>'; extraSectionsLoading = false; return; }
+  listEl.innerHTML = tracks.map((t, i) => `
+    <div class="h-card anim" style="animation-delay:${i*0.04}s" onclick="playExtraTrack('${sId}',${i})">
+      <img class="h-card-img" src="${t.thumb}" alt="" onerror="this.style.background='#222'">
+      <div class="h-card-title">${t.title}</div>
+      <div class="h-card-sub">${t.channel}</div>
+    </div>
+  `).join('');
+
+  extraSectionsLoading = false;
+}
+
+function playExtraTrack(sId, idx) {
+  const pool = extraTrackPools[sId];
+  if (!pool) return;
+  // Merge into allTracks at end if not already there
+  const offset = allTracks.length;
+  // Check if pool already merged
+  const poolIds = pool.map(t => t.id);
+  const alreadyIn = allTracks.some(t => t.id === pool[0]?.id);
+  if (!alreadyIn) allTracks = [...allTracks, ...pool];
+  const realIdx = alreadyIn ? allTracks.findIndex(t => t.id === pool[idx].id) : offset + idx;
+  playTrack(realIdx < 0 ? 0 : realIdx, allTracks);
+}
+
+function loadSimilarQuery(query, label) {
+  // Scroll to top and load
+  document.getElementById('homeScroll').scrollTop = 0;
+  document.querySelectorAll('#homeChips .chip').forEach(x => x.classList.remove('active'));
+  loadHome(query);
+}
+
+// ===== INFINITE SCROLL =====
+function setupInfiniteScroll() {
+  const sentinel = document.getElementById('scrollSentinel');
+  const observer = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting && currentPage === 'home') {
+      loadNextExtraSection();
+    }
+  }, { rootMargin: '200px' });
+  observer.observe(sentinel);
+}
+
+// ===== PLAY =====
+function playTrack(idx, tracks) {
+  if (idx < 0 || idx >= tracks.length) return;
+  if (tracks !== allTracks) { allTracks = tracks; }
+  curIdx = idx;
+  const t = allTracks[idx];
+
+  // Update UI first
+  document.getElementById('miniThumb').src = t.thumb;
+  document.getElementById('miniTitle').textContent = t.title;
+  document.getElementById('miniArtist').textContent = t.channel;
+  document.getElementById('miniPlayer').classList.add('show');
+  document.getElementById('miniProg').style.width = '0%';
+
+  document.getElementById('fpImg').src = t.thumb;
+  document.getElementById('fpTitle').textContent = t.title;
+  document.getElementById('fpArtist').textContent = t.channel;
+  document.getElementById('fpPfill').style.width = '0%';
+  document.getElementById('fpNow').textContent = '0:00';
+  document.getElementById('fpEnd').textContent = '0:00';
+
+  // Show play icon — onStateChange will flip to pause when video actually starts
+  setPlaying(false);
+
+  // Load video
+  if (ytReady && yt && typeof yt.loadVideoById === 'function') {
+    yt.loadVideoById(t.id);
+    try { yt.setVolume(parseInt(document.getElementById('fpVol').value)); } catch(e) {}
+  } else {
+    pendingId = t.id;
+  }
+
+  // Re-render QP to highlight
+  renderQP(allTracks);
+}
+
+function featuredPlay() { playTrack(0, allTracks); }
+function playAll() { playTrack(0, allTracks); }
+
+function nextTrack() { if (curIdx < allTracks.length - 1) playTrack(curIdx + 1, allTracks); else setPlaying(false); }
+function prevTrack() { if (curIdx > 0) playTrack(curIdx - 1, allTracks); }
+
+function togglePlay() {
+  if (!yt) return;
+  yt.getPlayerState() === YT.PlayerState.PLAYING ? yt.pauseVideo() : yt.playVideo();
+}
+
+function setPlaying(yes) {
+  // mini
+  document.getElementById('miniIcPlay').style.display = yes ? 'none' : 'block';
+  document.getElementById('miniIcPause').style.display = yes ? 'block' : 'none';
+  // full
+  document.getElementById('fpIcPlay').style.display = yes ? 'none' : 'block';
+  document.getElementById('fpIcPause').style.display = yes ? 'block' : 'none';
+}
+
+// Progress
+function startProg() {
+  clearInterval(progTimer);
+  progTimer = setInterval(() => {
+    if (!yt?.getDuration) return;
+    const cur = yt.getCurrentTime() || 0;
+    const dur = yt.getDuration() || 0;
+    if (!dur) return;
+    const pct = (cur/dur*100) + '%';
+    document.getElementById('miniProg').style.width = pct;
+    document.getElementById('fpPfill').style.width = pct;
+    document.getElementById('fpNow').textContent = fmt(cur);
+    document.getElementById('fpEnd').textContent = fmt(dur);
+  }, 500);
+}
+
+document.getElementById('fpPbar').onclick = e => {
+  if (!yt?.getDuration) return;
+  const r = e.currentTarget.getBoundingClientRect();
+  yt.seekTo(((e.clientX - r.left) / r.width) * yt.getDuration());
+};
+
+document.getElementById('fpVol').oninput = e => { if (yt?.setVolume) yt.setVolume(e.target.value); };
+
+function fmt(s) {
+  if (!s || isNaN(s)) return '0:00';
+  return `${Math.floor(s/60)}:${Math.floor(s%60).toString().padStart(2,'0')}`;
+}
+
+// ===== FULL PLAYER =====
+function openFullPlayer() { document.getElementById('fullPlayer').classList.add('open'); }
+function closeFullPlayer() { document.getElementById('fullPlayer').classList.remove('open'); }
+// Swipe down to close
+let startY = 0;
+document.getElementById('fullPlayer').addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, { passive: true });
+document.getElementById('fullPlayer').addEventListener('touchend', e => {
+  if (e.changedTouches[0].clientY - startY > 80) closeFullPlayer();
+});
+
+// ===== HOME CHIPS =====
+document.getElementById('homeChips').addEventListener('click', e => {
+  const c = e.target.closest('.chip');
+  if (!c) return;
+  document.querySelectorAll('#homeChips .chip').forEach(x => x.classList.remove('active'));
+  c.classList.add('active');
+  loadHome(c.dataset.q);
+});
+
+// ===== SEARCH =====
+document.getElementById('searchInput').addEventListener('input', e => {
+  clearTimeout(searchTimer);
+  const q = e.target.value.trim();
+  if (!q) {
+    document.getElementById('searchResults').innerHTML = `<div class="search-empty"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg><p>Cari lagu, album, atau artis</p></div>`;
+    return;
+  }
+  document.getElementById('searchResults').innerHTML = '<div class="loading"><div class="spin"></div><span>Mencari...</span></div>';
+  searchTimer = setTimeout(async () => {
+    const results = await ytSearch(q, 20);
+    allTracks = results;
+    curIdx = -1;
+    renderSearch(results);
+  }, 600);
+});
+
+// ===== SIMILAR BANNER =====
+function loadSimilar() {
+  if (!allTracks.length) return;
+  const t = allTracks[Math.min(3, allTracks.length-1)];
+  document.getElementById('homeScroll').scrollTop = 0;
+  document.querySelectorAll('#homeChips .chip').forEach(x => x.classList.remove('active'));
+  loadHome(`${t.channel} songs`);
+}
+
+// ===== INIT =====
+loadHome();
+setupInfiniteScroll();
+</script>
+<div class="credit">Made by Alan</div>
+</body>
+</html>
