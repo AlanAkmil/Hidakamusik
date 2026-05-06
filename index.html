@@ -475,7 +475,7 @@ let yt=null,ytReady=false,pendingId=null;
 let allTracks=[],curIdx=-1,progTimer,searchTimer;
 let currentPage='home',shuffleOn=false,repeatOn=false;
 let currentArtistTracks=[];
-let lyricsTrackId=null,lyricsIdx=0;
+let lyricsTrackId=null,lyricsIdx=0,syncedLines=null;
 let lastSearchResults=[],currentSearchFilter='all',lastSearchQ='';
 let currentLibTab='all';
 
@@ -538,35 +538,49 @@ function switchFpTab(tab,btn){
   if(tab==='upnext')renderUpNext();
 }
 
-// ===== LYRICS (fetch real from lyrics.ovh) =====
+// ===== LYRICS via lrclib.net =====
 async function loadLyrics(){
   const t=allTracks[curIdx];
   if(!t)return;
   if(lyricsTrackId===t.id)return;
   lyricsTrackId=t.id;
   document.getElementById('lyricsContent').innerHTML='<div class="lyrics-loading"><div class="spin"></div><span>Memuat lirik...</span></div>';
-  // Parse title to get artist/song - strip ft., (), []
-  let title=t.title.replace(/\(.*?\)/g,'').replace(/\[.*?\]/g,'').replace(/ft\..*/i,'').replace(/feat\..*/i,'').trim();
-  let artist=t.channel.replace(/VEVO/i,'').replace(/Official/i,'').trim();
+  // Clean title & artist
+  let rawTitle=t.title.replace(/\(.*?\)/g,'').replace(/\[.*?\]/g,'').replace(/ft\..*$/i,'').replace(/feat\..*$/i,'').replace(/official.*/i,'').replace(/video.*/i,'').replace(/lyrics.*/i,'').replace(/audio.*/i,'').trim();
+  let artist=t.channel.replace(/VEVO/gi,'').replace(/Official/gi,'').replace(/Music/gi,'').trim();
   try{
-    const res=await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(artist)}/${encodeURIComponent(title)}`);
-    const data=await res.json();
-    if(data.lyrics){
-      const lines=data.lyrics.split('\n').filter(l=>l.trim());
-      renderLyricsLines(lines);
-    } else {
-      // fallback: try with title as artist
-      const res2=await fetch(`https://api.lyrics.ovh/v1/${encodeURIComponent(title)}/${encodeURIComponent(artist)}`);
-      const data2=await res2.json();
-      if(data2.lyrics){
-        renderLyricsLines(data2.lyrics.split('\n').filter(l=>l.trim()));
+    // Try lrclib search
+    const url=`https://lrclib.net/api/search?q=${encodeURIComponent(rawTitle+' '+artist)}`;
+    const res=await fetch(url,{headers:{'Lrclib-Client':'NadaMusic/1.0'}});
+    const arr=await res.json();
+    if(arr&&arr.length){
+      // Pick best match with plain lyrics
+      const match=arr.find(x=>x.plainLyrics)||arr[0];
+      if(match.syncedLyrics){
+        // Use synced lyrics (LRC format)
+        const lines=match.syncedLyrics.split('\n').map(l=>{
+          const m=l.match(/\[(\d+):(\d+\.\d+)\](.*)/);
+          if(!m)return null;
+          return{time:parseInt(m[1])*60+parseFloat(m[2]),text:m[3].trim()||'♪'};
+        }).filter(Boolean);
+        syncedLines=lines;
+        renderLyricsLines(lines.map(l=>l.text),true);
+      } else if(match.plainLyrics){
+        syncedLines=null;
+        const lines=match.plainLyrics.split('\n').filter(l=>l.trim());
+        renderLyricsLines(lines,false);
       } else {
-        document.getElementById('lyricsContent').innerHTML='<div class="lyrics-loading"><span style="color:var(--muted);text-align:center;padding:0 20px">Lirik tidak tersedia untuk lagu ini 😔<br><br>Coba putar lagu dalam bahasa Inggris</span></div>';
+        showNoLyrics();
       }
+    } else {
+      showNoLyrics();
     }
-  } catch{
-    document.getElementById('lyricsContent').innerHTML='<div class="lyrics-loading"><span style="color:var(--muted)">Gagal memuat lirik 😔</span></div>';
+  } catch(e){
+    showNoLyrics();
   }
+}
+function showNoLyrics(){
+  document.getElementById('lyricsContent').innerHTML='<div class="lyrics-loading" style="padding:40px 28px;text-align:center"><span style="color:var(--muted);font-size:15px;line-height:1.8">Lirik tidak tersedia 😔<br><span style="font-size:12px">Coba lagu berbahasa Inggris<br>atau artis internasional</span></span></div>';
 }
 
 function renderLyricsLines(lines){
@@ -577,10 +591,19 @@ function renderLyricsLines(lines){
 
 function updateLyricsHighlight(){
   if(!yt?.getDuration)return;
-  const cur=yt.getCurrentTime()||0,dur=yt.getDuration()||1;
+  const cur=yt.getCurrentTime()||0;
   const lines=document.querySelectorAll('#lyricsContent .lyrics-line');
   if(!lines.length)return;
-  const newIdx=Math.min(Math.floor((cur/dur)*lines.length),lines.length-1);
+  let newIdx=lyricsIdx;
+  if(syncedLines&&syncedLines.length){
+    // Use real timestamps
+    for(let i=syncedLines.length-1;i>=0;i--){
+      if(cur>=syncedLines[i].time){newIdx=i;break;}
+    }
+  } else {
+    const dur=yt.getDuration()||1;
+    newIdx=Math.min(Math.floor((cur/dur)*lines.length),lines.length-1);
+  }
   if(newIdx!==lyricsIdx){
     lines[lyricsIdx]?.classList.remove('active');
     lines[newIdx]?.classList.add('active');
@@ -974,7 +997,9 @@ async function loadHome(q='top hits 2024'){
   document.getElementById('featuredBg').style.backgroundImage=`url(${t0.thumb})`;
   renderSpeedGrid(allTracks);renderQP(allTracks);renderArtists(allTracks);
   renderHCards('trendList',allTracks,0);renderHCards('newList',allTracks,8);
+  // Load first 2 sections immediately
   loadNextExtraSection();
+  setTimeout(loadNextExtraSection,800);
 }
 
 async function loadNextExtraSection(){
@@ -1005,7 +1030,14 @@ function playExtraTrack(sId,idx){
 }
 
 function setupInfiniteScroll(){
-  new IntersectionObserver(entries=>{if(entries[0].isIntersecting&&currentPage==='home')loadNextExtraSection();},{rootMargin:'200px'}).observe(document.getElementById('scrollSentinel'));
+  // Load aggressively - 2 sections at once, trigger early
+  const obs=new IntersectionObserver(async entries=>{
+    if(entries[0].isIntersecting&&currentPage==='home'){
+      await loadNextExtraSection();
+      setTimeout(loadNextExtraSection,300); // load next one right after
+    }
+  },{rootMargin:'600px'}); // trigger way before hitting bottom
+  obs.observe(document.getElementById('scrollSentinel'));
 }
 
 // ===== PLAY =====
