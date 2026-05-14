@@ -1,7 +1,13 @@
 {
   "rewrites": [
+    { "source": "/sw.js", "destination": "/sw.js" },
+    { "source": "/manifest.json", "destination": "/manifest.json" },
+    { "source": "/icon-192.jpg", "destination": "/icon-192.jpg" },
+    { "source": "/icon-512.jpg", "destination": "/icon-512.jpg" },
+    { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/search", "destination": "/index.html" },
     { "source": "/library", "destination": "/index.html" },
-    { "source": "/developer", "destination": "/index.html" }
+    { "source": "/developer", "destination": "/index.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
