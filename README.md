@@ -4,6 +4,7 @@ Hidaka Music adalah aplikasi streaming musik berbasis web (PWA) yang menggunakan
 
 ---
 
+
 ## 🚀 Demo & Deployment
 
 Aplikasi ini didesain untuk di-deploy ke platform seperti **Vercel** atau **Netlify**, dengan backend serverless minimal untuk endpoint pencarian (`/api/search`).
