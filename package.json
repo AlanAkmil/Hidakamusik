@@ -1,0 +1,7 @@
+{
+  "name": "hidaka-musik",
+  "version": "1.0.0",
+  "dependencies": {
+    "youtube-sr": "^4.3.11"
+  }
+}
