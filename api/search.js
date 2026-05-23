@@ -1,4 +1,4 @@
-import YouTubesr from 'youtube-sr';
+const { default: YouTube } = require('youtube-sr');
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -9,7 +9,7 @@ export default async function handler(req, res) {
   if (!q) return res.status(400).json({ error: 'Query required' });
 
   try {
-    const results = await YouTubesr.default.search(q, {
+    const results = await YouTube.search(q, {
       limit: parseInt(max),
       type: 'video',
     });
