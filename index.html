@@ -13,18 +13,13 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#121212;--surface:#1a1a1a;--card:#242424;--card2:#2a2a2a;--border:rgba(255,255,255,0.08);--accent:#1db954;--accent2:#1ed760;--text:#fff;--text2:#a0a0a0;--muted:#555;--nav-h:68px;--mini-h:64px}
-body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden;-webkit-tap-highlight-color:transparent}
+:root{--bg:#121212;--surface:#1a1a1a;--card:#242424;--card2:#2a2a2a;--border:rgba(255,255,255,0.08);--accent:#1db954;--accent2:#1ed760;--text:#fff;--text2:#a0a0a0;--muted:#555;--nav-h:68px;--mini-h:64px;--safe-top:env(safe-area-inset-top,0px);--safe-bottom:env(safe-area-inset-bottom,0px)}
+body{background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;overflow-x:hidden;-webkit-tap-highlight-color:transparent;padding-top:var(--safe-top)}
 #yt{position:fixed;top:-9999px;left:-9999px;width:1px;height:1px;pointer-events:none}
 .page{display:none;flex-direction:column;min-height:100vh;padding-bottom:calc(var(--nav-h) + var(--mini-h) + 8px)}
 .page.active{display:flex}
 .topbar{position:sticky;top:0;z-index:20;background:var(--bg);padding:16px 20px 12px}
-/* Safe area inset untuk Median/WebView app - status bar Android */
-@supports(padding-top: env(safe-area-inset-top)){
-  .topbar{padding-top:calc(16px + env(safe-area-inset-top))}
-  .search-topbar{padding-top:calc(16px + env(safe-area-inset-top))}
-  .lib-topbar{padding-top:calc(16px + env(safe-area-inset-top))}
-}
+/* Safe area sudah ditangani via body padding-top + var(--safe-top) */
 .topbar-row{display:flex;align-items:center;justify-content:space-between}
 .topbar-title{font-size:24px;font-weight:800;letter-spacing:-.5px}
 .topbar-icons{display:flex;gap:12px;align-items:center}
