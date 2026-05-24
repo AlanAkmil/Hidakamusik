@@ -1,6 +1,6 @@
 {
   "name": "Hidaka Music",
-  "short_name": "Hidaka",
+  "short_name": "Hidaka Music",
   "description": "Platform streaming musik modern gratis tanpa iklan",
   "start_url": "/",
   "display": "standalone",
