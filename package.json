@@ -2,6 +2,6 @@
   "name": "hidaka-musik",
   "version": "1.0.0",
   "dependencies": {
-    "youtube-sr": "^4.3.12"
+    "@distube/ytsr": "^2.0.4"
   }
 }
