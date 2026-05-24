@@ -1,4 +1,4 @@
-const { default: YouTube } = require('youtube-sr');
+const ytsr = require('@distube/ytsr');
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -9,16 +9,13 @@ export default async function handler(req, res) {
   if (!q) return res.status(400).json({ error: 'Query required' });
 
   try {
-    const results = await YouTube.search(q, {
-      limit: parseInt(max),
-      type: 'video',
-    });
+    const results = await ytsr(q, { limit: parseInt(max) });
 
-    const tracks = results.map(v => ({
+    const tracks = results.items.map(v => ({
       id: v.id,
-      title: v.title,
-      channel: v.channel?.name || '',
-      thumb: v.thumbnail?.url || `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`,
+      title: v.name,
+      channel: v.author?.name || '',
+      thumb: v.thumbnails?.[0]?.url || `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`,
     }));
 
     res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate');
