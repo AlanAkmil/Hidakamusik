@@ -9,30 +9,50 @@ export default async function handler(req, res) {
   if (!list) return res.status(400).json({ error: 'Playlist ID required' });
 
   try {
-    // Search playlist by ID
-    const results = await ytsr(`https://www.youtube.com/playlist?list=${list}`, {
-      limit: 50,
-      type: 'video'
+    // Fetch playlist langsung dari YouTube tanpa library
+    const playlistUrl = `https://www.youtube.com/playlist?list=${list}`;
+    const response = await fetch(playlistUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept-Language': 'en-US,en;q=0.9',
+      }
     });
 
-    if (!results || !results.items || !results.items.length) {
-      return res.status(404).json({ error: 'Playlist tidak ditemukan atau kosong' });
-    }
+    const html = await response.text();
 
-    const tracks = results.items
-      .filter(v => v.type === 'video' && v.id)
-      .map(v => ({
-        id: v.id,
-        title: v.name,
-        channel: v.author?.name || '',
-        thumb: v.thumbnails?.[0]?.url || `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`,
-      }));
+    // Extract ytInitialData dari HTML
+    const match = html.match(/var ytInitialData\s*=\s*({.+?});<\/script>/s) ||
+                  html.match(/ytInitialData\s*=\s*({.+?});\s*(?:var|window|<\/script>)/s);
+    
+    if (!match) throw new Error('Tidak bisa parse playlist YouTube');
+
+    const data = JSON.parse(match[1]);
+    
+    // Navigate ke playlist items
+    const contents = data?.contents?.twoColumnBrowseResultsRenderer?.tabs?.[0]
+      ?.tabRenderer?.content?.sectionListRenderer?.contents?.[0]
+      ?.itemSectionRenderer?.contents?.[0]
+      ?.playlistVideoListRenderer?.contents || [];
+
+    const title = data?.header?.playlistHeaderRenderer?.title?.runs?.[0]?.text || 'Playlist YouTube';
+
+    const tracks = contents
+      .filter(item => item.playlistVideoRenderer)
+      .map(item => {
+        const v = item.playlistVideoRenderer;
+        const id = v.videoId;
+        const trackTitle = v.title?.runs?.[0]?.text || '';
+        const channel = v.shortBylineText?.runs?.[0]?.text || '';
+        const thumb = `https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
+        return { id, title: trackTitle, channel, thumb };
+      })
+      .filter(t => t.id && t.title);
+
+    if (!tracks.length) throw new Error('Playlist kosong atau tidak bisa diakses');
 
     res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate');
-    return res.status(200).json({
-      title: results.originalQuery || 'Playlist YouTube',
-      tracks
-    });
+    return res.status(200).json({ title, tracks });
+
   } catch (e) {
     return res.status(500).json({ error: e.message });
   }
