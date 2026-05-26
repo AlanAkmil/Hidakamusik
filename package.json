@@ -1,6 +1,7 @@
 {
   "name": "hidaka-musik",
   "version": "1.0.0",
+  "type": "module",
   "dependencies": {
     "@distube/ytsr": "^2.0.4"
   }
