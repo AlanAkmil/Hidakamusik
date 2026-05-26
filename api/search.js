@@ -1,5 +1,3 @@
-import ytsr from '@distube/ytsr';
-
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
@@ -8,21 +6,36 @@ export default async function handler(req, res) {
   const { q, max = 12 } = req.query;
   if (!q) return res.status(400).json({ error: 'Query required' });
 
-  try {
-    const results = await ytsr(q, { limit: parseInt(max) });
+  const instances = [
+    'https://inv.nadeko.net',
+    'https://invidious.privacydev.net',
+    'https://iv.datura.network',
+    'https://invidious.nerdvpn.de',
+    'https://yt.artemislena.eu',
+  ];
 
-    const tracks = results.items
-      .filter(v => v.type === 'video')
-      .map(v => ({
-        id: v.id,
-        title: v.name,
-        channel: v.author?.name || '',
-        thumb: v.thumbnails?.[0]?.url || `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`,
+  for (const base of instances) {
+    try {
+      const url = `${base}/api/v1/search?q=${encodeURIComponent(q)}&type=video&page=1`;
+      const r = await fetch(url, { signal: AbortSignal.timeout(6000) });
+      if (!r.ok) continue;
+      const data = await r.json();
+      if (!Array.isArray(data) || !data.length) continue;
+
+      const tracks = data.slice(0, Number(max)).map(item => ({
+        id: item.videoId,
+        title: item.title,
+        channel: item.author,
+        thumb: item.videoThumbnails?.find(t => t.quality === 'medium')?.url
+          || `https://i.ytimg.com/vi/${item.videoId}/mqdefault.jpg`,
       }));
 
-    res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate');
-    return res.status(200).json(tracks);
-  } catch (e) {
-    return res.status(500).json({ error: e.message });
+      res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate');
+      return res.status(200).json(tracks);
+    } catch (e) {
+      continue;
+    }
   }
+
+  return res.status(500).json({ error: 'Semua server gagal, coba lagi.' });
 }
