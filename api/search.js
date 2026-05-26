@@ -1,4 +1,4 @@
-const ytsr = require('@distube/ytsr');
+import ytsr from '@distube/ytsr';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -11,12 +11,14 @@ export default async function handler(req, res) {
   try {
     const results = await ytsr(q, { limit: parseInt(max) });
 
-    const tracks = results.items.map(v => ({
-      id: v.id,
-      title: v.name,
-      channel: v.author?.name || '',
-      thumb: v.thumbnails?.[0]?.url || `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`,
-    }));
+    const tracks = results.items
+      .filter(v => v.type === 'video')
+      .map(v => ({
+        id: v.id,
+        title: v.name,
+        channel: v.author?.name || '',
+        thumb: v.thumbnails?.[0]?.url || `https://i.ytimg.com/vi/${v.id}/mqdefault.jpg`,
+      }));
 
     res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate');
     return res.status(200).json(tracks);
