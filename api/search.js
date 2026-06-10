@@ -1,49 +1,67 @@
 import ytsr from '@distube/ytsr';
 
 // ===== BLACKLIST =====
-// Block konten gaming/streamer, tapi biarkan musik game & podcast lolos
-const BLACKLIST_TITLE = [
-  // Streamer / gameplay
-  'gameplay', 'let\'s play', 'lets play', 'playthrough', 'walkthrough',
-  'speedrun', 'no commentary', 'gaming session',
-  // Reaction / vlog
-  'reaction', 'reacts to', 'reacting to',
-  'vlog', 'daily vlog', 'weekly vlog',
-  // Review non-musik
-  'unboxing', 'product review', 'phone review', 'laptop review',
-  'gpu review', 'cpu review', 'pc build',
-  // Konten streamer spesifik
-  'stream highlight', 'twitch highlight', 'twitch clip',
-  'ranked game', 'ranked match', 'ranked gameplay',
-  'pvp', 'pve gameplay', 'battle royale gameplay',
-  'fps gameplay', 'moba gameplay',
+// Hanya block konten yang JELAS bukan musik
+// Semua matching pakai word boundary supaya tidak nyangkut ke judul lagu biasa
+const BLACKLIST_PATTERNS = [
+  // Gameplay / streaming
+  /\bgameplay\b/i,
+  /\blet'?s play\b/i,
+  /\bplaythrough\b/i,
+  /\bwalkthrough\b/i,
+  /\bspeedrun\b/i,
+  /\bno commentary\b/i,
+  /\bgaming session\b/i,
+  /\bstream highlight\b/i,
+  /\btwitch (highlight|clip)\b/i,
+  /\branked (game|match|gameplay)\b/i,
+  /\b(fps|moba|pvp|pve) gameplay\b/i,
+  /\bbattle royale gameplay\b/i,
+  // Reaction / review non-musik
+  /\breacts? to\b/i,
+  /\breacting to\b/i,
+  /\bunboxing\b/i,
+  /\b(phone|laptop|gpu|cpu|pc) (review|build)\b/i,
+  // Vlog (hanya kalau beneran vlog, bukan judul lagu)
+  /\bdaily vlog\b/i,
+  /\bweekly vlog\b/i,
+  /\b#vlog\b/i,
 ];
 
-// Kata yang kalau muncul di judul = kemungkinan musik game, JANGAN diblock
-const WHITELIST_OVERRIDE = [
-  'ost', 'original soundtrack', 'soundtrack', 'game music', 'game ost',
-  'bgm', 'music video', 'mv', 'official', 'lyrics', 'lyric',
-  'cover', 'acoustic', 'piano', 'orchestral', 'remix',
-  'ft.', 'feat.', 'prod.',
+// Kalau judul mengandung kata ini, LOLOS meski ada kata blacklist
+// (misal: "Minecraft OST", "Game Music Compilation", dll)
+const WHITELIST_PATTERNS = [
+  /\bost\b/i,
+  /\boriginal soundtrack\b/i,
+  /\bsoundtrack\b/i,
+  /\bgame (music|ost|bgm|theme)\b/i,
+  /\bbgm\b/i,
+  /\blyrics?\b/i,
+  /\bcover\b/i,
+  /\bacoustic\b/i,
+  /\bpiano\b/i,
+  /\borchestral\b/i,
+  /\bremix\b/i,
+  /\bfeat\b/i,
+  /\bft\.\b/i,
+  /\bprod\.\b/i,
+  /\baudio\b/i,
+  /\bdubbing\b/i,
+  /\bdub\b/i,
+  /\bsub indo\b/i,
+  /\bkaraoke\b/i,
 ];
 
-function isMusicContent(title, channel) {
+function isMusicContent(title) {
   const tl = title.toLowerCase();
-  const cl = channel.toLowerCase();
 
-  // Kalau ada kata whitelist -> lolos (musik game/cover dll)
-  if (WHITELIST_OVERRIDE.some(w => tl.includes(w))) return true;
+  // Cek whitelist dulu — kalau ada, langsung lolos tanpa cek blacklist
+  if (WHITELIST_PATTERNS.some(p => p.test(tl))) return true;
 
-  // Kalau ada kata blacklist di judul -> block
-  if (BLACKLIST_TITLE.some(b => tl.includes(b))) return false;
+  // Cek blacklist
+  if (BLACKLIST_PATTERNS.some(p => p.test(tl))) return false;
 
-  // Channel yang jelas bukan musik (opsional, bisa ditambah)
-  const BLOCKED_CHANNELS = [
-    'elestial', // contoh dari screenshot
-  ];
-  // Uncomment kalau mau block channel tertentu:
-  // if (BLOCKED_CHANNELS.some(b => cl.includes(b))) return false;
-
+  // Default: lolos (musik non-official, nama lagu doang, dll)
   return true;
 }
 
@@ -66,7 +84,7 @@ export default async function handler(req, res) {
 
     const tracks = results.items
       .filter(v => v.type === 'video' && v.id)
-      .filter(v => isMusicContent(v.name, v.author?.name || ''))
+      .filter(v => isMusicContent(v.name))
       .slice(0, parseInt(max))
       .map(v => ({
         id: v.id,
@@ -89,7 +107,7 @@ export default async function handler(req, res) {
           if (data.items?.length) {
             return res.status(200).json(
               data.items
-                .filter(item => isMusicContent(item.snippet.title, item.snippet.channelTitle))
+                .filter(item => isMusicContent(item.snippet.title))
                 .map(item => ({
                   id: item.id.videoId,
                   title: item.snippet.title,
