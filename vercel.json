@@ -9,6 +9,8 @@
     { "source": "/library", "destination": "/index.html" },
     { "source": "/developer", "destination": "/index.html" },
     { "source": "/login", "destination": "/index.html" },
+    { "source": "/profile", "destination": "/index.html" },
+    { "source": "/misi", "destination": "/index.html" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
