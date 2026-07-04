@@ -30,7 +30,13 @@ body{background:#0f0f0f;color:#fff;font-family:'Inter',system-ui,sans-serif;min-
 .search-box{width:100%;background:#1a1a1a;border:1px solid rgba(255,255,255,.1);color:#fff;padding:12px 14px;border-radius:10px;font-size:14px;font-family:inherit;margin-bottom:16px}
 
 /* User rows */
-.user-row{display:flex;align-items:center;gap:12px;background:#1a1a1a;border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.user-row{background:#1a1a1a;border-radius:14px;padding:12px 14px;margin-bottom:10px}
+.user-row-top{display:flex;align-items:center;gap:12px}
+.user-row-bottom{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.06);flex-wrap:wrap}
+.admin-mini-form{display:flex;align-items:center;gap:5px;font-size:11px;color:#a0a0a0}
+.admin-mini-form input,.admin-mini-form select{background:#242424;border:1px solid rgba(255,255,255,.1);color:#fff;padding:6px 8px;border-radius:6px;font-size:11px;font-family:inherit}
+.admin-mini-form input[type=number]{width:56px;text-align:center}
+.admin-mini-form button{background:#3b82f6;color:#fff;border:none;padding:6px 10px;border-radius:6px;font-size:10px;font-weight:800;cursor:pointer;font-family:inherit;white-space:nowrap}
 .user-avatar{width:42px;height:42px;border-radius:50%;background:#2a2a2a;object-fit:cover;flex-shrink:0}
 .user-body{flex:1;min-width:0}
 .user-name{font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -187,16 +193,32 @@ window.renderUserList = function(){
   if(!filtered.length){ el.innerHTML = '<div class="empty-state">Gak ada pengguna ditemukan.</div>'; return; }
   el.innerHTML = filtered.map(u => `
     <div class="user-row">
-      <img class="user-avatar" src="${u.photoURL || ''}" onerror="this.style.background='#2a2a2a'">
-      <div class="user-body">
-        <div class="user-name">${escapeHtml(u.displayName || 'Tanpa Nama')}</div>
-        <div class="user-meta">${escapeHtml((u.bio||'').slice(0,50)) || 'Belum ada bio'}</div>
-        <div class="user-uid">${u.uid}</div>
+      <div class="user-row-top">
+        <img class="user-avatar" src="${u.photoURL || ''}" onerror="this.style.background='#2a2a2a'">
+        <div class="user-body">
+          <div class="user-name">${escapeHtml(u.displayName || 'Tanpa Nama')}</div>
+          <div class="user-meta">${escapeHtml((u.bio||'').slice(0,50)) || 'Belum ada bio'} • Lv.${getLevelFromPoints(u.levelPoints||0)} • ${escapeHtml(u.roleOverride||getRoleFromComments(u.commentCount||0))}</div>
+          <div class="user-uid">${u.uid}</div>
+        </div>
+        <div class="user-coins">⚡ ${(u.coins||0).toLocaleString('id-ID')}</div>
+        <div class="coin-add-form">
+          <input type="number" id="coinInput_${u.uid}" placeholder="50">
+          <button onclick="grantCoins('${u.uid}')">+ Kasih</button>
+        </div>
       </div>
-      <div class="user-coins">⚡ ${(u.coins||0).toLocaleString('id-ID')}</div>
-      <div class="coin-add-form">
-        <input type="number" id="coinInput_${u.uid}" placeholder="50">
-        <button onclick="grantCoins('${u.uid}')">+ Kasih</button>
+      <div class="user-row-bottom">
+        <div class="admin-mini-form">
+          Level:
+          <input type="number" id="lvlInput_${u.uid}" min="1" max="100" placeholder="Lv.${getLevelFromPoints(u.levelPoints||0)}">
+          <button onclick="setUserLevel('${u.uid}')">Set Level</button>
+        </div>
+        <div class="admin-mini-form">
+          Rank:
+          <select id="rankInput_${u.uid}">
+            ${ROLE_TIERS.map(r=>`<option value="${r.name}">${r.name}</option>`).join('')}
+          </select>
+          <button onclick="setUserRank('${u.uid}')">Set Rank</button>
+        </div>
       </div>
     </div>
   `).join('');
@@ -216,6 +238,63 @@ window.grantCoins = async function(uid){
       allUsers.reduce((sum,x)=>sum+(x.coins||0),0).toLocaleString('id-ID');
   }catch(e){
     alert('❌ Gagal kasih koin: ' + (e.code || e.message) + '\n\nCek Firestore Rules udah kasih akses write admin ke user_profiles.');
+  }
+};
+
+// Sama persis kayak formula di app utama, biar Level/Rank yang ditampilin konsisten
+const ROLE_TIERS = [
+  {min:0,name:'Pendengar'},{min:10,name:'Pendengar Aktif'},{min:20,name:'Komentator'},
+  {min:30,name:'Komentator Rajin'},{min:40,name:'Kontributor'},{min:50,name:'Kontributor Setia'},
+  {min:60,name:'Legenda Komentar'},{min:70,name:'Master Komentar'},{min:80,name:'Sesepuh'},
+  {min:90,name:'Veteran Sejati'}
+];
+function getRoleFromComments(cc){
+  let name = ROLE_TIERS[0].name;
+  for(const t of ROLE_TIERS) if(cc >= t.min) name = t.name;
+  return name;
+}
+const MAX_LEVEL = 100;
+function _levelPointReq(n){ return 20 + 15*(n-1); }
+function getLevelFromPoints(totalPoints){
+  let lvl = 1, cum = 0;
+  while(lvl < MAX_LEVEL){
+    const req = _levelPointReq(lvl);
+    if(totalPoints >= cum + req){ cum += req; lvl++; } else break;
+  }
+  return lvl;
+}
+function _cumPointsForLevel(targetLevel){
+  let cum = 0;
+  for(let i=1;i<targetLevel;i++) cum += _levelPointReq(i);
+  return cum;
+}
+
+window.setUserLevel = async function(uid){
+  const input = document.getElementById('lvlInput_'+uid);
+  const targetLevel = parseInt(input.value, 10);
+  if(!targetLevel || targetLevel < 1 || targetLevel > 100){ alert('Masukin level 1-100'); return; }
+  const points = _cumPointsForLevel(targetLevel);
+  try{
+    await updateDoc(doc(db, 'user_profiles', uid), { levelPoints: points });
+    const u = allUsers.find(x=>x.uid===uid);
+    if(u) u.levelPoints = points;
+    input.value = '';
+    renderUserList();
+  }catch(e){
+    alert('❌ Gagal set level: ' + (e.code || e.message));
+  }
+};
+
+window.setUserRank = async function(uid){
+  const select = document.getElementById('rankInput_'+uid);
+  const rank = select.value;
+  try{
+    await updateDoc(doc(db, 'user_profiles', uid), { roleOverride: rank });
+    const u = allUsers.find(x=>x.uid===uid);
+    if(u) u.roleOverride = rank;
+    renderUserList();
+  }catch(e){
+    alert('❌ Gagal set rank: ' + (e.code || e.message));
   }
 };
 
