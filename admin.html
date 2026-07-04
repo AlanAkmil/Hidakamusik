@@ -49,6 +49,8 @@ body{background:#0f0f0f;color:#fff;font-family:'Inter',system-ui,sans-serif;min-
 <div id="loginScreen" class="login-box">
   <h2>🔐 Admin Panel</h2>
   <p>Login pakai akun admin Hidaka Music</p>
+  <button onclick="doGoogleLogin()" style="background:#fff;color:#000;margin-bottom:16px">🔵 Login pakai Google</button>
+  <div style="font-size:11px;color:#555;margin-bottom:14px">— atau pakai email/password —</div>
   <input type="email" id="adminEmail" placeholder="Email">
   <input type="password" id="adminPassword" placeholder="Password">
   <button onclick="doAdminLogin()">Masuk</button>
@@ -87,7 +89,7 @@ body{background:#0f0f0f;color:#fff;font-family:'Inter',system-ui,sans-serif;min-
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import {
-  getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut
+  getAuth, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import {
   getFirestore, collection, getDocs, doc, updateDoc, increment
@@ -115,6 +117,16 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 let allUsers = [];
+
+window.doGoogleLogin = async function(){
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = '';
+  try{
+    await signInWithPopup(auth, new GoogleAuthProvider());
+  }catch(e){
+    errEl.textContent = '❌ Login gagal: ' + (e.code || e.message);
+  }
+};
 
 window.doAdminLogin = async function(){
   const email = document.getElementById('adminEmail').value.trim();
